@@ -133,5 +133,35 @@ public class ExpenditureManager {
         }
         return result;
     }
+    public List<Expenditure> sortByCategory() {
+        List<Expenditure> list = new ArrayList<>(expenditures.values());
+        // Insertion Sort by category
+        for (int i = 1; i < list.size(); i++) {
+            Expenditure key = list.get(i);
+            int j = i - 1;
+            while (j >= 0 && list.get(j).getCategory().compareToIgnoreCase(key.getCategory()) > 0) {
+                list.set(j + 1, list.get(j));
+                j--;
+            }
+            list.set(j + 1, key);
+        }
+        return list;
+    }
+    public List<Expenditure> sortByDate() {
+        List<Expenditure> list = new ArrayList<>(expenditures.values());
+        // Insertion Sort by date
+        for (int i = 1; i < list.size(); i++) {
+            Expenditure key = list.get(i);
+            int j = i - 1;
+            while (j >= 0 && list.get(j).getDate().after(key.getDate())) {
+                list.set(j + 1, list.get(j));
+                j--;
+            }
+            list.set(j + 1, key);
+        }
+        return list;
+    }
+
+
 
 }

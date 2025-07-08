@@ -6,11 +6,18 @@ import models.BankAccount;
 import models.Expenditure;
 import managers.ReceiptManager;
 import managers.CategoryManager;
+import analysis.FinancialAnalysis;
+import graph.AccountGraph;
+import reports.ReportGenerator;
+
+
+
 
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -25,6 +32,12 @@ public class MainApp {
     static SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
     static CategoryManager categoryManager = new CategoryManager();
     static ReceiptManager receiptManager = new ReceiptManager();
+    static FinancialAnalysis analysis = new FinancialAnalysis(expenditureManager);
+    static AccountGraph accountGraph = new AccountGraph();
+    static ReportGenerator reportGenerator = new ReportGenerator();
+
+
+
 
 
 
@@ -41,6 +54,15 @@ public class MainApp {
             System.out.println("8. Upload Receipt");
             System.out.println("9. Review Next Receipt");
             System.out.println("10. View Receipt Queue Size");
+            System.out.println("11. Show Monthly Burn Rate");
+            System.out.println("12. Forecast Profitability");
+            System.out.println("13. Show Top Spending Categories");
+            System.out.println("14. Add Account Transfer");
+            System.out.println("15. View Account Relationship Graph");
+            System.out.println("16. Show Reachable Accounts");
+            System.out.println("17. Sort Expenditures by Category");
+            System.out.println("18. Sort Expenditures by Date");
+            System.out.println("19. Generate System Report");
             System.out.println("0. Exit");
             System.out.print("Choose option: ");
             
@@ -78,8 +100,33 @@ public class MainApp {
             case 10:
                 System.out.println("📦 Pending receipts: " + receiptManager.getQueueSize());
                 break;
-
-
+            case 11:
+                showBurnRate();
+                break;
+            case 12:
+                analysis.forecastProfitability();
+                break;
+            case 13:
+                showTopCategories();
+                break;
+            case 14:
+                addTransfer();
+                break;
+            case 15:
+                accountGraph.displayGraph();
+                break;
+            case 16:
+                showReachableAccounts();
+                break;
+            case 17:
+                sortByCategory();
+                break;
+            case 18:
+                sortByDate();
+                break;
+            case 19:
+                reportGenerator.generateReport();
+                break;
             case 0:
                 System.out.println("Exiting... Goodbye!");
                 System.exit(0);
@@ -185,6 +232,72 @@ public class MainApp {
             System.out.println("⚠️ Category already exists.");
         }
     }
+    private static void addTransfer() {
+        System.out.print("From Account ID: ");
+        String from = scanner.nextLine();
+
+        System.out.print("To Account ID: ");
+        String to = scanner.nextLine();
+
+        accountGraph.addTransfer(from, to);
+        System.out.println("✅ Transfer relationship recorded.");
+    }
+    private static void showReachableAccounts() {
+        System.out.print("Enter account ID to explore: ");
+        String id = scanner.nextLine();
+
+        Set<String> reachable = accountGraph.getReachableAccounts(id);
+
+        if (reachable.isEmpty()) {
+            System.out.println("❌ No reachable accounts found.");
+        } else {
+            System.out.println("🔁 Reachable accounts from " + id + ":");
+            for (String acc : reachable) {
+                System.out.println("- " + acc);
+            }
+        }
+    }
+
+    private static void showBurnRate() {
+        Map<String, Double> burn = analysis.calculateMonthlyBurnRate();
+        if (burn.isEmpty()) {
+            System.out.println("No expenditure data to calculate burn rate.");
+            return;
+        }
+
+        System.out.println("📅 Monthly Burn Rate (GHS):");
+        for (Map.Entry<String, Double> entry : burn.entrySet()) {
+            System.out.println(entry.getKey() + ": GHS " + entry.getValue());
+        }
+    }
+    private static void showTopCategories() {
+        Map<String, Double> topCats = analysis.topCategories();
+        if (topCats.isEmpty()) {
+            System.out.println("No expenditures available.");
+            return;
+        }
+
+        System.out.println("📊 Top Spending Categories:");
+        for (Map.Entry<String, Double> entry : topCats.entrySet()) {
+            System.out.println("- " + entry.getKey() + ": GHS " + entry.getValue());
+        }
+    }
+    private static void sortByCategory() {
+        List<Expenditure> sorted = expenditureManager.sortByCategory();
+        System.out.println("\n🗂️ Expenditures Sorted by Category:");
+        for (Expenditure exp : sorted) {
+            System.out.println(exp);
+        }
+    }
+
+    private static void sortByDate() {
+        List<Expenditure> sorted = expenditureManager.sortByDate();
+        System.out.println("\n📅 Expenditures Sorted by Date:");
+        for (Expenditure exp : sorted) {
+            System.out.println(exp);
+        }
+    }
+
 
     private static void viewCategories() {
         Set<String> categories = categoryManager.getAllCategories();
