@@ -1,7 +1,10 @@
 package managers;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import utils.FileStorage;
+import utils.MyLinkedQueue;
+import utils.MyQueue;
+import utils.MyList;
+import utils.MyArrayList;
 
 /**
  * Simulates a receipt review queue (FIFO).
@@ -9,24 +12,24 @@ import java.util.Queue;
  */
 public class ReceiptManager {
 
-    private Queue<String> receiptQueue;
+    private MyQueue<String> receiptQueue;
 
     public ReceiptManager() {
-        receiptQueue = new LinkedList<>();
+        receiptQueue = new MyLinkedQueue<>();
     }
 
     /**
      * Upload (enqueue) a receipt file path for review.
      */
     public void uploadReceipt(String receiptPath) {
-        receiptQueue.offer(receiptPath);
+        receiptQueue.enqueue(receiptPath);
     }
 
     /**
      * Review (dequeue) the next receipt in queue.
      */
-    public String reviewNextReceipt() {
-        return receiptQueue.poll(); // returns null if empty
+    public String reviewReceipt() {
+        return receiptQueue.dequeue(); // removes the first receipt, returns null if empty
     }
 
     /**
@@ -48,5 +51,23 @@ public class ReceiptManager {
      */
     public boolean isEmpty() {
         return receiptQueue.isEmpty();
+    }
+
+    // ✅ Save to receipts.txt
+    public void saveToFile(String filepath) {
+        MyList<String> lines = new MyArrayList<>();
+        for (String path : receiptQueue) {
+            lines.add(path);
+        }
+        FileStorage.writeLines(filepath, lines);
+    }
+
+    // ✅ Load from receipts.txt
+    public void loadFromFile(String filepath) {
+        for (String line : FileStorage.readLines(filepath)) {
+            if (!line.isBlank()) {
+            	receiptQueue.enqueue(line.trim());
+            }
+        }
     }
 }

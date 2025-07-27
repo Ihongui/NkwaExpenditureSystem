@@ -1,1 +1,2 @@
-11004310|Fabrice ihongui|1000000.0|
+11004321,Africa bank,145551.0
+11004310,SGConnect,1251447.0

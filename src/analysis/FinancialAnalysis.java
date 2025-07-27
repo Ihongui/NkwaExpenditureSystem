@@ -2,9 +2,9 @@ package analysis;
 
 import managers.ExpenditureManager;
 import models.Expenditure;
+import utils.*;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
 
 /**
  * Provides financial analytics such as burn rate and spending trends.
@@ -21,23 +21,33 @@ public class FinancialAnalysis {
     /**
      * Calculates total expenditure per month (burn rate).
      */
-    public Map<String, Double> calculateMonthlyBurnRate() {
-        Map<String, Double> burnMap = new TreeMap<>(); // Sorted by month
+    public MyMap<String, Double> calculateMonthlyBurnRate() {
+        MyMap<String, Double> burnMap = new MyHashMap<>();
 
         for (Expenditure exp : expManager.getAll()) {
             String month = monthFormat.format(exp.getDate());
-            burnMap.put(month, burnMap.getOrDefault(month, 0.0) + exp.getAmount());
+
+            // Emulate getOrDefault
+            Double current = burnMap.get(month);
+            if (current == null) current = 0.0;
+
+            burnMap.put(month, current + exp.getAmount());
         }
 
         return burnMap;
     }
 
     /**
-     * Predicts profitability trend (very basic logic: increasing/decreasing monthly spend).
+     * Predicts profitability trend based on monthly burn rate.
      */
     public void forecastProfitability() {
-        Map<String, Double> burn = calculateMonthlyBurnRate();
-        List<Double> values = new ArrayList<>(burn.values());
+        MyMap<String, Double> burn = calculateMonthlyBurnRate();
+
+        // Convert values to list (manual since we don’t use java.util)
+        MyList<Double> values = new MyArrayList<>();
+        for (MyMap.Entry<String, Double> entry : burn.entrySet()) {
+            values.add(entry.getValue());
+        }
 
         if (values.size() < 2) {
             System.out.println("❌ Not enough data to forecast.");
@@ -57,14 +67,18 @@ public class FinancialAnalysis {
     }
 
     /**
-     * Returns top categories by total expenditure.
+     * Returns top spending categories.
      */
-    public Map<String, Double> topCategories() {
-        Map<String, Double> categoryMap = new HashMap<>();
+    public MyMap<String, Double> topCategories() {
+        MyMap<String, Double> categoryMap = new MyHashMap<>();
 
         for (Expenditure exp : expManager.getAll()) {
             String cat = exp.getCategory().toLowerCase();
-            categoryMap.put(cat, categoryMap.getOrDefault(cat, 0.0) + exp.getAmount());
+
+            Double current = categoryMap.get(cat);
+            if (current == null) current = 0.0;
+
+            categoryMap.put(cat, current + exp.getAmount());
         }
 
         return sortMapByValueDescending(categoryMap);
@@ -73,12 +87,25 @@ public class FinancialAnalysis {
     /**
      * Utility: Sorts map by value (descending)
      */
-    private Map<String, Double> sortMapByValueDescending(Map<String, Double> map) {
-        List<Map.Entry<String, Double>> list = new ArrayList<>(map.entrySet());
-        list.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+    private MyMap<String, Double> sortMapByValueDescending(MyMap<String, Double> map) {
+        MyList<MyMap.Entry<String, Double>> entries = new MyArrayList<>();
+        for (MyMap.Entry<String, Double> entry : map.entrySet()) {
+            entries.add(entry);
+        }
 
-        Map<String, Double> sorted = new LinkedHashMap<>();
-        for (Map.Entry<String, Double> entry : list) {
+        // Manual bubble sort (or replace with your comparator if defined)
+        for (int i = 0; i < entries.size() - 1; i++) {
+            for (int j = 0; j < entries.size() - i - 1; j++) {
+                if (entries.get(j).getValue() < entries.get(j + 1).getValue()) {
+                    MyMap.Entry<String, Double> temp = entries.get(j);
+                    entries.set(j, entries.get(j + 1));
+                    entries.set(j + 1, temp);
+                }
+            }
+        }
+
+        MyMap<String, Double> sorted = new MyHashMap<>();
+        for (MyMap.Entry<String, Double> entry : entries) {
             sorted.put(entry.getKey(), entry.getValue());
         }
 

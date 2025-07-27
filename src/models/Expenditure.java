@@ -47,6 +47,14 @@ public class Expenditure {
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
         return formatter.format(date);
     }
+    public String getBankAccountId() {
+        return getAccountId();
+    }
+// here we upload to file as a text
+    public String toFileString() {
+        return code + "," + amount + "," + new SimpleDateFormat("dd-MM-yyyy").format(date) + "," + phase + "," + category + "," + accountId + "," + receiptPath;
+    }
+
 
     // Convert object to readable string format
     @Override

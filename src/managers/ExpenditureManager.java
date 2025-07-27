@@ -1,167 +1,166 @@
 package managers;
 
 import models.Expenditure;
+import utils.MyHashMap;
+import utils.MyList;
+import utils.MyMap;
+import utils.FileStorage;
+import utils.MyArrayList;
 
-import java.io.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
 
 /**
- * Manages a collection of Expenditure records using a HashMap.
- * Handles loading from and saving to a text file.
+ * Manages storage and retrieval of expenditures using custom data structures.
  */
 public class ExpenditureManager {
 
-    private final HashMap<String, Expenditure> expenditures; // Key: code
-    private final String filePath = "expenditures.txt";
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+    private final MyMap<String, Expenditure> expenditures; // code → expenditure
+    private final MyList<Expenditure> expenditureList;
 
     public ExpenditureManager() {
-        expenditures = new HashMap<>();
-        loadFromFile(); // Load data on startup
+        expenditures = new MyHashMap<>();
+        expenditureList = new MyArrayList<>();
     }
 
-    /**
-     * Adds a new expenditure to the system and saves it to file.
-     */
     public void addExpenditure(Expenditure exp) {
         expenditures.put(exp.getCode(), exp);
-        saveToFile();
+        expenditureList.add(exp);
     }
 
-    /**
-     * Finds an expenditure by its code.
-     */
-    public Expenditure findByCode(String code) {
-        return expenditures.get(code);
+    public MyList<Expenditure> getAll() {
+        return expenditureList;
     }
 
-    /**
-     * Returns a list of all expenditures.
-     */
-    public List<Expenditure> getAll() {
-        return new ArrayList<>(expenditures.values());
-    }
-
-    /**
-     * Loads expenditure data from a text file into memory.
-     * Format: code|amount|date|phase|category|accountId|receiptPath
-     */
-    private void loadFromFile() {
-        File file = new File(filePath);
-        if (!file.exists()) return;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split("\\|");
-                if (parts.length == 7) {
-                    String code = parts[0];
-                    double amount = Double.parseDouble(parts[1]);
-                    Date date = dateFormat.parse(parts[2]);
-                    String phase = parts[3];
-                    String category = parts[4];
-                    String accountId = parts[5];
-                    String receiptPath = parts[6];
-
-                    Expenditure exp = new Expenditure(code, amount, date, phase, category, accountId, receiptPath);
-                    expenditures.put(code, exp);
-                }
-            }
-
-        } catch (Exception e) {
-            System.out.println("Error loading expenditures: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Saves all expenditure records to a text file.
-     */
-    private void saveToFile() {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
-            for (Expenditure exp : expenditures.values()) {
-                String line = exp.getCode() + "|" +
-                              exp.getAmount() + "|" +
-                              dateFormat.format(exp.getDate()) + "|" +
-                              exp.getPhase() + "|" +
-                              exp.getCategory() + "|" +
-                              exp.getAccountId() + "|" +
-                              (exp.getReceiptPath() == null ? "" : exp.getReceiptPath());
-
-                bw.write(line);
-                bw.newLine();
-            }
-
-        } catch (IOException e) {
-            System.out.println("Error saving expenditures: " + e.getMessage());
-        }
-    }
-    public List<Expenditure> searchByDateRange(Date start, Date end) {
-        List<Expenditure> result = new ArrayList<>();
-        for (Expenditure exp : expenditures.values()) {
+    public MyList<Expenditure> searchByDateRange(Date start, Date end) {
+        MyList<Expenditure> result = new MyArrayList<>();
+        for (int i = 0; i < expenditureList.size(); i++) {
+            Expenditure exp = expenditureList.get(i);
             if (!exp.getDate().before(start) && !exp.getDate().after(end)) {
                 result.add(exp);
             }
         }
         return result;
     }
-    public List<Expenditure> searchByCategory(String category) {
-        List<Expenditure> result = new ArrayList<>();
-        for (Expenditure exp : expenditures.values()) {
+
+    public MyList<Expenditure> searchByCategory(String category) {
+        MyList<Expenditure> result = new MyArrayList<>();
+        for (int i = 0; i < expenditureList.size(); i++) {
+            Expenditure exp = expenditureList.get(i);
             if (exp.getCategory().equalsIgnoreCase(category)) {
                 result.add(exp);
             }
         }
         return result;
     }
-    public List<Expenditure> searchByCostRange(double min, double max) {
-        List<Expenditure> result = new ArrayList<>();
-        for (Expenditure exp : expenditures.values()) {
+
+    public MyList<Expenditure> searchByCostRange(double min, double max) {
+        MyList<Expenditure> result = new MyArrayList<>();
+        for (int i = 0; i < expenditureList.size(); i++) {
+            Expenditure exp = expenditureList.get(i);
             if (exp.getAmount() >= min && exp.getAmount() <= max) {
                 result.add(exp);
             }
         }
         return result;
     }
-    public List<Expenditure> searchByAccount(String accountId) {
-        List<Expenditure> result = new ArrayList<>();
-        for (Expenditure exp : expenditures.values()) {
-            if (exp.getAccountId().equalsIgnoreCase(accountId)) {
+
+    public MyList<Expenditure> searchByAccount(String accountId) {
+        MyList<Expenditure> result = new MyArrayList<>();
+        for (int i = 0; i < expenditureList.size(); i++) {
+            Expenditure exp = expenditureList.get(i);
+            if (exp.getBankAccountId().equals(accountId)) {
                 result.add(exp);
             }
         }
         return result;
     }
-    public List<Expenditure> sortByCategory() {
-        List<Expenditure> list = new ArrayList<>(expenditures.values());
-        // Insertion Sort by category
-        for (int i = 1; i < list.size(); i++) {
-            Expenditure key = list.get(i);
-            int j = i - 1;
-            while (j >= 0 && list.get(j).getCategory().compareToIgnoreCase(key.getCategory()) > 0) {
-                list.set(j + 1, list.get(j));
-                j--;
+
+    public MyList<Expenditure> sortByCategory() {
+        MyList<Expenditure> sorted = cloneList();
+        for (int i = 0; i < sorted.size(); i++) {
+            for (int j = 0; j < sorted.size() - i - 1; j++) {
+                if (sorted.get(j).getCategory().compareToIgnoreCase(sorted.get(j + 1).getCategory()) > 0) {
+                    Expenditure temp = sorted.get(j);
+                    sorted.set(j, sorted.get(j + 1));
+                    sorted.set(j + 1, temp);
+                }
             }
-            list.set(j + 1, key);
         }
-        return list;
-    }
-    public List<Expenditure> sortByDate() {
-        List<Expenditure> list = new ArrayList<>(expenditures.values());
-        // Insertion Sort by date
-        for (int i = 1; i < list.size(); i++) {
-            Expenditure key = list.get(i);
-            int j = i - 1;
-            while (j >= 0 && list.get(j).getDate().after(key.getDate())) {
-                list.set(j + 1, list.get(j));
-                j--;
-            }
-            list.set(j + 1, key);
-        }
-        return list;
+        return sorted;
     }
 
+    public MyList<Expenditure> sortByDate() {
+        MyList<Expenditure> sorted = cloneList();
+        for (int i = 0; i < sorted.size(); i++) {
+            for (int j = 0; j < sorted.size() - i - 1; j++) {
+                if (sorted.get(j).getDate().after(sorted.get(j + 1).getDate())) {
+                    Expenditure temp = sorted.get(j);
+                    sorted.set(j, sorted.get(j + 1));
+                    sorted.set(j + 1, temp);
+                }
+            }
+        }
+        return sorted;
+    }
 
+    private MyList<Expenditure> cloneList() {
+        MyList<Expenditure> copy = new MyArrayList<>();
+        for (int i = 0; i < expenditureList.size(); i++) {
+            copy.add(expenditureList.get(i));
+        }
+        return copy;
+    }
 
+    public Expenditure getByCode(String code) {
+        return expenditures.get(code);
+    }
+
+    public int count() {
+        return expenditureList.size();
+    }
+
+    /**
+     * Save expenditures to file.
+     */
+    public void saveToFile(String filepath) {
+        MyList<String> lines = new MyArrayList<>();
+        for (int i = 0; i < expenditureList.size(); i++) {
+            lines.add(expenditureList.get(i).toFileString());
+        }
+        FileStorage.writeLines(filepath, lines);
+    }
+
+    /**
+     * Load expenditures from file.
+     */
+    public void loadFromFile(String filepath) {
+        MyList<String> lines = FileStorage.readLines(filepath); // <- Already returns MyList<String>
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.isEmpty()) continue;
+
+            String[] parts = line.split(",");
+            if (parts.length >= 6) {
+                try {
+                    String code = parts[0].trim();
+                    double amount = Double.parseDouble(parts[1].trim());
+                    Date date = new SimpleDateFormat("dd-MM-yyyy").parse(parts[2].trim());
+                    String phase = parts[3].trim();
+                    String category = parts[4].trim();
+                    String account = parts[5].trim();
+                    String receipt = parts.length >= 7 ? parts[6].trim() : "";
+
+                    addExpenditure(new Expenditure(code, amount, date, phase, category, account, receipt));
+                } catch (NumberFormatException e) {
+                    System.out.println("⚠️ Skipping invalid line (amount): " + line);
+                } catch (ParseException e) {
+                    System.out.println("⚠️ Skipping invalid line (date): " + line);
+                }
+            } else {
+                System.out.println("⚠️ Skipping incomplete line: " + line);
+            }
+        }
+    }
 }

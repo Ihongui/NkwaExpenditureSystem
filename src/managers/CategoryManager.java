@@ -1,73 +1,78 @@
 package managers;
 
-import java.io.*;
-import java.util.HashSet;
-import java.util.Set;
+import utils.FileStorage;
+import utils.MyArrayList;
+import utils.MyHashSet;
+import utils.MyList;
+import utils.MySet;
 
 /**
- * Manages a unique set of expenditure categories using HashSet.
+ * Manages a set of unique expenditure categories using custom MySet.
  */
 public class CategoryManager {
 
-    private final Set<String> categories;
-    private final String filePath = "categories.txt";
+    private final MySet<String> categories;
 
     public CategoryManager() {
-        categories = new HashSet<>();
-        loadFromFile();
+        categories = new MyHashSet<>();
     }
 
     /**
      * Adds a new category if it doesn't already exist.
+     * @param category Name of the category to add
+     * @return true if added, false if duplicate
      */
     public boolean addCategory(String category) {
-        boolean added = categories.add(category.trim().toLowerCase());
-        if (added) saveToFile(); // Save only if new
-        return added;
+        return categories.add(category);
     }
 
     /**
-     * Checks if a category exists.
+     * Returns all categories as a MySet.
+     * @return MySet of categories
      */
-    public boolean contains(String category) {
-        return categories.contains(category.trim().toLowerCase());
-    }
-
-    /**
-     * Returns all categories.
-     */
-    public Set<String> getAllCategories() {
+    public MySet<String> getAllCategories() {
         return categories;
     }
 
     /**
-     * Load categories from file.
+     * Checks if a given category exists.
+     * @param category Name to check
+     * @return true if category exists
      */
-    private void loadFromFile() {
-        File file = new File(filePath);
-        if (!file.exists()) return;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                categories.add(line.trim().toLowerCase());
-            }
-        } catch (IOException e) {
-            System.out.println("⚠️ Error loading categories: " + e.getMessage());
-        }
+    public boolean containsCategory(String category) {
+        return categories.contains(category);
     }
 
     /**
-     * Save all categories to file.
+     * Clears all categories.
      */
-    private void saveToFile() {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
-            for (String category : categories) {
-                bw.write(category);
-                bw.newLine();
+    public void clearCategories() {
+        categories.clear();
+    }
+
+    /**
+     * Returns the total number of categories.
+     * @return int
+     */
+    public int size() {
+        return categories.size();
+    }
+    // ✅ Save categories to file
+    public void saveToFile(String filepath) {
+        MyList<String> list = new MyArrayList<>();
+        for (String cat : categories) {
+            list.add(cat);
+        }
+        FileStorage.writeLines(filepath, list);
+        
+    }
+
+    // ✅ Load categories from file
+    public void loadFromFile(String filepath) {
+        for (String line : FileStorage.readLines(filepath)) {
+            if (!line.isBlank()) {
+                categories.add(line.trim().toLowerCase());
             }
-        } catch (IOException e) {
-            System.out.println("⚠️ Error saving categories: " + e.getMessage());
         }
     }
 }
