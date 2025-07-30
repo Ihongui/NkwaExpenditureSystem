@@ -27,6 +27,7 @@ public class ExpenditureManager {
     public void addExpenditure(Expenditure exp) {
         expenditures.put(exp.getCode(), exp);
         expenditureList.add(exp);
+        
     }
 
     public MyList<Expenditure> getAll() {

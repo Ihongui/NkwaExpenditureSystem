@@ -36,7 +36,38 @@ public class ReceiptManager {
      * Peek at the next receipt without removing it.
      */
     public String peekNextReceipt() {
-        return receiptQueue.peek();
+        String nextReceiptPath = receiptQueue.peek();
+        if (nextReceiptPath == null) {
+            return "No receipts in queue.";
+        }
+
+        MyList<String> lines = FileStorage.readLines(nextReceiptPath);
+        if (lines.size() < 2) {
+            return "Invalid receipt format.";
+        }
+
+        // Get the expenditure line (should be the second line)
+        String expenditureLine = lines.get(1).trim();
+
+        // Parse the expenditure details
+        if (expenditureLine.startsWith("Expenditure [") && expenditureLine.endsWith("]")) {
+            // Remove "Expenditure [" from start and "]" from end
+            String content = expenditureLine.substring(13, expenditureLine.length() - 1);
+
+            // Split by ", " to get individual fields
+            String[] fields = content.split(", ");
+
+            StringBuilder result = new StringBuilder();
+            result.append("Receipt Details:\n");
+
+            for (String field : fields) {
+                result.append(field).append("\n");
+            }
+
+            return result.toString().trim(); // Remove the last newline
+        }
+
+        return "Could not parse receipt details.";
     }
 
     /**
@@ -66,8 +97,28 @@ public class ReceiptManager {
     public void loadFromFile(String filepath) {
         for (String line : FileStorage.readLines(filepath)) {
             if (!line.isBlank()) {
-            	receiptQueue.enqueue(line.trim());
+                receiptQueue.enqueue(line.trim());
             }
         }
+
+    }
+
+    public void saveReceipt(String filepath, String receiptDetails) {
+        MyList<String> lines = new MyArrayList<>();
+        filepath = "receipts/" + filepath; // Ensure the path is in the receipts directory
+
+        // Create receipts directory if it doesn't exist
+        java.io.File receiptDir = new java.io.File("receipts");
+        if (!receiptDir.exists()) {
+            receiptDir.mkdirs();
+        }
+
+        // Add the receipt details first
+        lines.add("Receipt Details:");
+        lines.add(receiptDetails);
+        lines.add(""); // Empty line for separation
+
+        FileStorage.writeLines(filepath, lines);
+        uploadReceipt(filepath);
     }
 }

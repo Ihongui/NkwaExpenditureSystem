@@ -20,7 +20,8 @@ import utils.MySet;
 import java.util.InputMismatchException;
 
 /**
- * Entry point of the application. Handles menu-driven navigation with input validation.
+ * Entry point of the application. Handles menu-driven navigation with input
+ * validation.
  */
 public class MainApp {
 
@@ -44,7 +45,8 @@ public class MainApp {
 
     /**
      * Main method - Entry point of the application
-     * @throws ParseException 
+     * 
+     * @throws ParseException
      */
     public static void main(String[] args) throws ParseException {
         displayWelcomeMessage();
@@ -100,7 +102,7 @@ public class MainApp {
         System.out.println("\n" + MENU_SEPARATOR);
         System.out.println("🏠 MAIN MENU - Choose an option:");
         System.out.println(MENU_SEPARATOR);
-        
+
         // Expenditure Management
         System.out.println("📊 EXPENDITURE MANAGEMENT:");
         System.out.println("   1. Add New Expenditure");
@@ -108,7 +110,7 @@ public class MainApp {
         System.out.println("   7. Search Expenditures");
         System.out.println("   17. Sort Expenditures by Category");
         System.out.println("   18. Sort Expenditures by Date");
-        
+
         // Bank Account Management
         System.out.println("\n🏦 BANK ACCOUNT MANAGEMENT:");
         System.out.println("   3. Create Bank Account");
@@ -116,28 +118,28 @@ public class MainApp {
         System.out.println("   14. Add Account Transfer");
         System.out.println("   15. View Account Relationship Graph");
         System.out.println("   16. Show Reachable Accounts");
-        
+
         // Category Management
         System.out.println("\n📂 CATEGORY MANAGEMENT:");
         System.out.println("   5. Add New Category");
         System.out.println("   6. View All Categories");
-        
+
         // Receipt Management
         System.out.println("\n🧾 RECEIPT MANAGEMENT:");
         System.out.println("   8. Upload Receipt");
         System.out.println("   9. Review Next Receipt");
         System.out.println("   10. View Receipt Queue Size");
-        
+
         // Analysis & Reports
         System.out.println("\n📈 ANALYSIS & REPORTS:");
         System.out.println("   11. Show Monthly Burn Rate");
         System.out.println("   12. Forecast Profitability");
         System.out.println("   13. Show Top Spending Categories");
         System.out.println("   19. Generate System Report");
-        
+
         System.out.println("\n❌ EXIT:");
         System.out.println("   0. Exit Application");
-        
+
         System.out.println(MENU_SEPARATOR);
         System.out.print("👉 Enter your choice (0-19): ");
     }
@@ -150,7 +152,7 @@ public class MainApp {
             try {
                 int choice = scanner.nextInt();
                 scanner.nextLine(); // Consume leftover newline
-                
+
                 if (choice >= 0 && choice <= 19) {
                     return choice;
                 } else {
@@ -241,54 +243,61 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("➕ ADD NEW EXPENDITURE");
         System.out.println("=".repeat(30));
-        
+
         try {
             // Get expenditure code
-            String code = getValidString("💼 Enter Expenditure Code: ", 
-                                       "Expenditure code cannot be empty!");
-            
+            String code = getValidString("💼 Enter Expenditure Code: ",
+                    "Expenditure code cannot be empty!");
+
             // Get amount
             double amount = getValidAmount("💰 Enter Amount (GHS): ");
-            
+
             // Get date
             Date date = getValidDate("📅 Enter Date (dd-MM-yyyy): ");
-            
+
             // Get phase
-            String phase = getValidString("🏗️ Enter Phase (e.g., construction): ", 
-                                        "Phase cannot be empty!");
-            
+            String phase = getValidString("🏗️ Enter Phase (e.g., construction): ",
+                    "Phase cannot be empty!");
+
             // Get category
-            String category = getValidString("📊 Enter Category (e.g., Cement): ", 
-                                           "Category cannot be empty!");
-            
+            String category = getValidString("📊 Enter Category (e.g., Cement): ",
+                    "Category cannot be empty!");
+
             // Get bank account ID
-            String accountId = getValidString("🏦 Enter Bank Account ID: ", 
-                                            "Bank Account ID cannot be empty!");
-            
+            String accountId = getValidString("🏦 Enter Bank Account ID: ",
+                    "Bank Account ID cannot be empty!");
+
             // Check if account exists and has sufficient funds
             if (!bankManager.withdrawFromAccount(accountId, amount)) {
                 System.out.println(ERROR_PREFIX + "Insufficient funds or account not found.");
                 System.out.println(INFO_PREFIX + "Please check your account ID and balance.");
                 return;
             }
-            
+
             // Get receipt path (optional)
             System.out.print("🧾 Enter Receipt Path (optional, press Enter to skip): ");
-            String receipt = scanner.nextLine().trim();
-            
+            String receiptpath = scanner.nextLine().trim();
+
+            // Use a default receipt path if empty
+            if (receiptpath.isEmpty()) {
+                receiptpath = "receipts/" + code + "_receipt.txt";
+                System.out.println(INFO_PREFIX + "Using default receipt path: " + receiptpath);
+            }
+
             // Create and add expenditure
-            Expenditure exp = new Expenditure(code, amount, date, phase, category, accountId, receipt);
+            Expenditure exp = new Expenditure(code, amount, date, phase, category, accountId, receiptpath);
             expenditureManager.addExpenditure(exp);
-            
+            receiptManager.saveReceipt(receiptpath, exp.toString());
+
             // Link expenditure to bank account
             BankAccount acc = bankManager.getAccount(accountId);
             if (acc != null) {
                 acc.addExpenditure(code);
             }
-            
+
             System.out.println(SUCCESS_PREFIX + "Expenditure recorded successfully!");
             System.out.println(INFO_PREFIX + "Amount GHS " + amount + " withdrawn from account " + accountId);
-            
+
         } catch (Exception e) {
             System.out.println(ERROR_PREFIX + "Failed to add expenditure: " + e.getMessage());
             System.out.println(INFO_PREFIX + "Please try again with valid inputs.");
@@ -302,7 +311,7 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("👁️ ALL EXPENDITURES");
         System.out.println("=".repeat(30));
-        
+
         MyList<Expenditure> list = expenditureManager.getAll();
         if (list.isEmpty()) {
             System.out.println(INFO_PREFIX + "No expenditures recorded yet.");
@@ -323,22 +332,22 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("🏦 CREATE BANK ACCOUNT");
         System.out.println("=".repeat(30));
-        
+
         try {
-            String id = getValidString("🆔 Enter Bank Account ID: ", 
-                                     "Bank Account ID cannot be empty!");
-            
-            String bank = getValidString("🏦 Enter Bank Name: ", 
-                                       "Bank name cannot be empty!");
-            
+            String id = getValidString("🆔 Enter Bank Account ID: ",
+                    "Bank Account ID cannot be empty!");
+
+            String bank = getValidString("🏦 Enter Bank Name: ",
+                    "Bank name cannot be empty!");
+
             double balance = getValidAmount("💰 Enter Initial Balance (GHS): ");
-            
+
             BankAccount acc = new BankAccount(id, bank, balance);
             bankManager.addAccount(acc);
-            
+
             System.out.println(SUCCESS_PREFIX + "Bank account created successfully!");
             System.out.println(INFO_PREFIX + "Account ID: " + id + ", Bank: " + bank + ", Balance: GHS " + balance);
-            
+
         } catch (Exception e) {
             System.out.println(ERROR_PREFIX + "Failed to create bank account: " + e.getMessage());
         }
@@ -351,7 +360,7 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("🏦 ALL BANK ACCOUNTS");
         System.out.println("=".repeat(30));
-        
+
         MyList<BankAccount> accounts = bankManager.getAllAccounts();
         if (accounts.isEmpty()) {
             System.out.println(INFO_PREFIX + "No bank accounts available.");
@@ -372,10 +381,10 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("📂 ADD NEW CATEGORY");
         System.out.println("=".repeat(30));
-        
-        String name = getValidString("📊 Enter Category Name: ", 
-                                   "Category name cannot be empty!");
-        
+
+        String name = getValidString("📊 Enter Category Name: ",
+                "Category name cannot be empty!");
+
         if (categoryManager.addCategory(name)) {
             System.out.println(SUCCESS_PREFIX + "Category '" + name + "' added successfully!");
         } else {
@@ -391,7 +400,7 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("📂 ALL CATEGORIES");
         System.out.println("=".repeat(30));
-        
+
         MySet<String> categories = categoryManager.getAllCategories();
         if (categories.isEmpty()) {
             System.out.println(INFO_PREFIX + "No categories available.");
@@ -412,18 +421,18 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("💸 ADD ACCOUNT TRANSFER");
         System.out.println("=".repeat(30));
-        
-        String from = getValidString("🏦 Enter Source Account ID: ", 
-                                   "Source account ID cannot be empty!");
-        
-        String to = getValidString("🏦 Enter Destination Account ID: ", 
-                                 "Destination account ID cannot be empty!");
-        
+
+        String from = getValidString("🏦 Enter Source Account ID: ",
+                "Source account ID cannot be empty!");
+
+        String to = getValidString("🏦 Enter Destination Account ID: ",
+                "Destination account ID cannot be empty!");
+
         if (from.equals(to)) {
             System.out.println(ERROR_PREFIX + "Source and destination accounts cannot be the same!");
             return;
         }
-        
+
         accountGraph.addTransfer(from, to);
         System.out.println(SUCCESS_PREFIX + "Transfer relationship recorded successfully!");
         System.out.println(INFO_PREFIX + "Transfer: " + from + " → " + to);
@@ -436,12 +445,12 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("🔗 REACHABLE ACCOUNTS");
         System.out.println("=".repeat(30));
-        
-        String id = getValidString("🆔 Enter Account ID to explore: ", 
-                                 "Account ID cannot be empty!");
-        
+
+        String id = getValidString("🆔 Enter Account ID to explore: ",
+                "Account ID cannot be empty!");
+
         MySet<String> reachable = accountGraph.getReachableAccounts(id);
-        
+
         if (reachable.isEmpty()) {
             System.out.println(INFO_PREFIX + "No reachable accounts found from account: " + id);
         } else {
@@ -460,7 +469,7 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("📅 MONTHLY BURN RATE");
         System.out.println("=".repeat(30));
-        
+
         MyMap<String, Double> burn = analysis.calculateMonthlyBurnRate();
         if (burn.isEmpty()) {
             System.out.println(INFO_PREFIX + "No expenditure data available to calculate burn rate.");
@@ -481,7 +490,7 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("📊 TOP SPENDING CATEGORIES");
         System.out.println("=".repeat(30));
-        
+
         MyMap<String, Double> topCats = analysis.topCategories();
         if (topCats.isEmpty()) {
             System.out.println(INFO_PREFIX + "No expenditure data available.");
@@ -502,7 +511,7 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("🗂️ EXPENDITURES BY CATEGORY");
         System.out.println("=".repeat(30));
-        
+
         MyList<Expenditure> sorted = expenditureManager.sortByCategory();
         if (sorted.isEmpty()) {
             System.out.println(INFO_PREFIX + "No expenditures to sort.");
@@ -522,7 +531,7 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("📅 EXPENDITURES BY DATE");
         System.out.println("=".repeat(30));
-        
+
         MyList<Expenditure> sorted = expenditureManager.sortByDate();
         if (sorted.isEmpty()) {
             System.out.println(INFO_PREFIX + "No expenditures to sort.");
@@ -547,9 +556,9 @@ public class MainApp {
         System.out.println("3. 💰 By Cost Range");
         System.out.println("4. 🏦 By Bank Account");
         System.out.println("=".repeat(30));
-        
+
         int option = getValidSearchOption();
-        
+
         switch (option) {
             case 1:
                 searchByDateRange();
@@ -578,7 +587,7 @@ public class MainApp {
                 System.out.print("👉 Choose search option (1-4): ");
                 int option = scanner.nextInt();
                 scanner.nextLine();
-                
+
                 if (option >= 1 && option <= 4) {
                     return option;
                 } else {
@@ -598,18 +607,18 @@ public class MainApp {
         try {
             System.out.println("\n📅 SEARCH BY DATE RANGE");
             System.out.println("-".repeat(30));
-            
+
             Date start = getValidDate("📅 Enter Start Date (dd-MM-yyyy): ");
             Date end = getValidDate("📅 Enter End Date (dd-MM-yyyy): ");
-            
+
             if (start.after(end)) {
                 System.out.println(ERROR_PREFIX + "Start date cannot be after end date!");
                 return;
             }
-            
+
             MyList<Expenditure> result = expenditureManager.searchByDateRange(start, end);
             showSearchResults(result, "Date Range: " + dateFormat.format(start) + " to " + dateFormat.format(end));
-            
+
         } catch (Exception e) {
             System.out.println(ERROR_PREFIX + "Error searching by date range: " + e.getMessage());
         }
@@ -621,10 +630,10 @@ public class MainApp {
     private static void searchByCategory() {
         System.out.println("\n📊 SEARCH BY CATEGORY");
         System.out.println("-".repeat(30));
-        
-        String category = getValidString("📊 Enter Category Name: ", 
-                                       "Category name cannot be empty!");
-        
+
+        String category = getValidString("📊 Enter Category Name: ",
+                "Category name cannot be empty!");
+
         MyList<Expenditure> result = expenditureManager.searchByCategory(category);
         showSearchResults(result, "Category: " + category);
     }
@@ -635,15 +644,15 @@ public class MainApp {
     private static void searchByCostRange() {
         System.out.println("\n💰 SEARCH BY COST RANGE");
         System.out.println("-".repeat(30));
-        
+
         double min = getValidAmount("💰 Enter Minimum Amount (GHS): ");
         double max = getValidAmount("💰 Enter Maximum Amount (GHS): ");
-        
+
         if (min > max) {
             System.out.println(ERROR_PREFIX + "Minimum amount cannot be greater than maximum amount!");
             return;
         }
-        
+
         MyList<Expenditure> result = expenditureManager.searchByCostRange(min, max);
         showSearchResults(result, "Cost Range: GHS " + min + " to GHS " + max);
     }
@@ -654,10 +663,10 @@ public class MainApp {
     private static void searchByAccount() {
         System.out.println("\n🏦 SEARCH BY BANK ACCOUNT");
         System.out.println("-".repeat(30));
-        
-        String accountId = getValidString("🏦 Enter Bank Account ID: ", 
-                                        "Bank Account ID cannot be empty!");
-        
+
+        String accountId = getValidString("🏦 Enter Bank Account ID: ",
+                "Bank Account ID cannot be empty!");
+
         MyList<Expenditure> result = expenditureManager.searchByAccount(accountId);
         showSearchResults(result, "Bank Account: " + accountId);
     }
@@ -669,10 +678,10 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("📤 UPLOAD RECEIPT");
         System.out.println("=".repeat(30));
-        
-        String path = getValidString("📁 Enter receipt file path (e.g., receipts/12345.jpg): ", 
-                                   "Receipt file path cannot be empty!");
-        
+
+        String path = getValidString("📁 Enter receipt file path (e.g., receipts/12345.jpg): ",
+                "Receipt file path cannot be empty!");
+
         receiptManager.uploadReceipt(path);
         System.out.println(SUCCESS_PREFIX + "Receipt uploaded successfully!");
         System.out.println(INFO_PREFIX + "Receipt added to review queue: " + path);
@@ -685,19 +694,19 @@ public class MainApp {
         System.out.println("\n" + "=".repeat(30));
         System.out.println("🔍 REVIEW RECEIPT");
         System.out.println("=".repeat(30));
-        
+
         if (receiptManager.isEmpty()) {
             System.out.println(INFO_PREFIX + "No receipts to review.");
             System.out.println("💡 Use option 8 to upload receipts first.");
             return;
         }
-        
+
         String next = receiptManager.peekNextReceipt();
         System.out.println("🔍 Next receipt to review: " + next);
         System.out.println("-".repeat(40));
-        
+
         String confirm = getValidYesNo("✅ Mark as reviewed? (y/n): ");
-        
+
         if (confirm.equalsIgnoreCase("y")) {
             receiptManager.reviewReceipt(); // dequeue
             System.out.println(SUCCESS_PREFIX + "Receipt reviewed and removed from queue.");
@@ -713,7 +722,7 @@ public class MainApp {
         System.out.println("\n📋 SEARCH RESULTS");
         System.out.println("🔍 Search: " + searchCriteria);
         System.out.println("=".repeat(50));
-        
+
         if (list.isEmpty()) {
             System.out.println(INFO_PREFIX + "No expenditures found matching your search criteria.");
             System.out.println("💡 Try adjusting your search parameters.");
@@ -748,11 +757,11 @@ public class MainApp {
         while (true) {
             System.out.print(prompt);
             String input = scanner.nextLine().trim();
-            
+
             if (!input.isEmpty()) {
                 return input;
             }
-            
+
             System.out.println(ERROR_PREFIX + errorMessage);
             System.out.println(INFO_PREFIX + "Please try again.");
         }
@@ -767,7 +776,7 @@ public class MainApp {
                 System.out.print(prompt);
                 double amount = scanner.nextDouble();
                 scanner.nextLine(); // consume newline
-                
+
                 if (amount > 0) {
                     return amount;
                 } else {
@@ -790,16 +799,16 @@ public class MainApp {
             try {
                 System.out.print(prompt);
                 String dateStr = scanner.nextLine().trim();
-                
+
                 if (dateStr.isEmpty()) {
                     System.out.println(ERROR_PREFIX + "Date cannot be empty!");
                     System.out.println(INFO_PREFIX + "Please enter date in format: dd-MM-yyyy (e.g., 25-12-2023)");
                     continue;
                 }
-                
+
                 Date date = dateFormat.parse(dateStr);
                 return date;
-                
+
             } catch (Exception e) {
                 System.out.println(ERROR_PREFIX + "Invalid date format!");
                 System.out.println(INFO_PREFIX + "Please use format: dd-MM-yyyy (e.g., 25-12-2023)");
@@ -815,11 +824,11 @@ public class MainApp {
         while (true) {
             System.out.print(prompt);
             String input = scanner.nextLine().trim().toLowerCase();
-            
+
             if (input.equals("y") || input.equals("yes") || input.equals("n") || input.equals("no")) {
                 return input;
             }
-            
+
             System.out.println(ERROR_PREFIX + "Please enter 'y' for yes or 'n' for no.");
         }
     }

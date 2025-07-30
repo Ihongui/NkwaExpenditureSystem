@@ -5,7 +5,7 @@ import java.util.Iterator;
 /**
  * Custom implementation of an ArrayList.
  */
-public class MyArrayList<T> implements MyList<T>, Iterable<T> {
+public class MyArrayList<T> implements MyList<T> {
     private T[] data;
     private int size;
 
